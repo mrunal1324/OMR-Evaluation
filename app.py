@@ -25,7 +25,6 @@ class VideoTransformer(VideoTransformerBase):
 
         # Preprocessing
         img = cv2.resize(img, (widthImg, heightImg))
-        imgFinal = img.copy()
         imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         imgBlur = cv2.GaussianBlur(imgGray, (5, 5), 1)
         imgCanny = cv2.Canny(imgBlur, 10, 50)
@@ -95,6 +94,10 @@ class VideoTransformer(VideoTransformerBase):
                 imgFinal = cv2.addWeighted(imgFinal, 1, imgInvWarpColored, 1, 0)
                 imgFinal = cv2.addWeighted(imgFinal, 1, imgInvGradeDisplay, 1, 0)
 
+            else:
+                st.warning("Contours not found or invalid image. Please upload a different image.")
+                return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
+
         except Exception as e:
             st.error(f"An error occurred while processing the image: {str(e)}")
             return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
@@ -111,7 +114,7 @@ else:
         try:
             # Read and decode the image file
             img = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
-            if img is not None:
+            if img is not None and img.size != 0:
                 transformer = VideoTransformer()
                 result_img = transformer.transform(img)
                 st.image(result_img, caption="Result Image", use_column_width=True)
