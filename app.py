@@ -124,3 +124,4 @@ else:
                 st.error("Invalid image or image could not be loaded.")
         except Exception as e:
             st.error(f"An error occurred while reading the image: {str(e)}")
+
