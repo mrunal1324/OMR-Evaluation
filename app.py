@@ -21,11 +21,7 @@ class VideoTransformer(VideoTransformerBase):
         if use_webcam:
             img = frame.to_ndarray(format="bgr24")
         else:
-            if image_path is None:
-                return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
-            img = cv2.imdecode(np.frombuffer(image_path.read(), np.uint8), 1)
-            if img is None:
-                return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
+            return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
 
         # Preprocessing
         img = cv2.resize(img, (widthImg, heightImg))
@@ -99,8 +95,9 @@ class VideoTransformer(VideoTransformerBase):
                 imgFinal = cv2.addWeighted(imgFinal, 1, imgInvWarpColored, 1, 0)
                 imgFinal = cv2.addWeighted(imgFinal, 1, imgInvGradeDisplay, 1, 0)
 
-        except:
-            pass
+        except Exception as e:
+            st.error(f"An error occurred while processing the image: {str(e)}")
+            return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
 
         return imgFinal
 
@@ -109,12 +106,16 @@ st.title("OMR MCQ Automated Grading")
 if use_webcam:
     webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
 else:
-    image_path = st.file_uploader("Upload Image", type=["jpg", "png"])
-    if image_path:
-        img = cv2.imdecode(np.frombuffer(image_path.read(), np.uint8), 1)
-        if img is not None:
-            transformer = VideoTransformer()
-            result_img = transformer.transform(img)
-            st.image(result_img, caption="Result Image", use_column_width=True)
-        else:
-            st.error("Invalid image or image could not be loaded.")
+    image_file = st.file_uploader("Upload Image", type=["jpg", "png"])
+    if image_file:
+        try:
+            # Read and decode the image file
+            img = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8), cv2.IMREAD_COLOR)
+            if img is not None:
+                transformer = VideoTransformer()
+                result_img = transformer.transform(img)
+                st.image(result_img, caption="Result Image", use_column_width=True)
+            else:
+                st.error("Invalid image or image could not be loaded.")
+        except Exception as e:
+            st.error(f"An error occurred while reading the image: {str(e)}")
