@@ -1,4 +1,8 @@
 streamlit
+<<<<<<< HEAD
 opencv-python
+=======
+opencv-python-headless
+>>>>>>> b8f281f7ea94c82fd93ab1762525b68a4615b68e
 numpy
 streamlit-webrtc
