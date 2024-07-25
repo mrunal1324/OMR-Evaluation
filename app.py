@@ -7,15 +7,11 @@ import utlis
 widthImg = 700
 heightImg = 700
 questions = 5
-choices = 5 
+choices = 5
 ans = [1, 1, 3, 1, 2]
 
 # Variable to switch between webcam and static image
 use_webcam = st.sidebar.checkbox("Use Webcam", value=True)
-image_path = None
-
-if not use_webcam:
-    image_path = st.sidebar.text_input("Image Path", "C:\\path\\to\\your\\image.jpg")
 
 class VideoTransformer(VideoTransformerBase):
     def __init__(self):
@@ -25,7 +21,9 @@ class VideoTransformer(VideoTransformerBase):
         if use_webcam:
             img = frame.to_ndarray(format="bgr24")
         else:
-            img = cv2.imread(image_path)
+            if image_path is None:
+                return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
+            img = cv2.imdecode(np.frombuffer(image_path.read(), np.uint8), 1)
             if img is None:
                 return np.zeros((heightImg, widthImg, 3), dtype=np.uint8)
 
@@ -111,12 +109,12 @@ st.title("OMR MCQ Automated Grading")
 if use_webcam:
     webrtc_streamer(key="example", video_transformer_factory=VideoTransformer)
 else:
+    image_path = st.file_uploader("Upload Image", type=["jpg", "png"])
     if image_path:
-        st.image(image_path, caption="Input Image", use_column_width=True)
-        img = cv2.imread(image_path)
+        img = cv2.imdecode(np.frombuffer(image_path.read(), np.uint8), 1)
         if img is not None:
             transformer = VideoTransformer()
             result_img = transformer.transform(img)
             st.image(result_img, caption="Result Image", use_column_width=True)
         else:
-            st.error("Invalid image path or image could not be loaded.")
+            st.error("Invalid image or image could not be loaded.")
